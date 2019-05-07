@@ -1,32 +1,75 @@
-# Prerequisites
-*.d
+#include <LiquidCrystal.h> //libreria
+int V0 = 3;
+int RS= 4;
+int E = 5;
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+int D4 = 6;
+int D5 = 7;
+int D6 = 8;
+int D7 = 9;
+LiquidCrystal lcd(RS, E, D4, D5, D6, D7); //Indicar los pins de la interfaz
 
-# Precompiled Headers
-*.gch
-*.pch
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+//Variables globales
+int SensorPin= 0; //Variable del pin de entrada del sensor
+int indice; //posicion del array de textos
+int presion; //variable para almacenar el valor obtenido del sensor(0 a 1023)
+int outputValue = 0;
+int state = 0;
+int prv_state = -1;
 
-# Fortran module files
-*.mod
-*.smod
+#define ARRAYTXT 4 //Numero de textos a escribir
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
 
-# Executables
-*.exe
-*.out
-*.app
+void setup() {
+  // put your setup code here, to run once:
+
+
+Serial.begin(9600);
+analogWrite(V0, 50);
+
+lcd.begin(16, 2);
+lcd.clear();
+//lcd.begin(Cols, Rows);
+}
+
+void loop() {
+
+ //Configuramos un comando de textos
+  String textos[ARRAYTXT] = {"Baja presion", "Presion normal", "Alta presion", "Apagar Maquina"};
+  
+  
+  presion = analogRead(SensorPin); //obtenemos datos del sensor
+    outputValue = map(presion, 175, 1023, 0, 367);
+
+//Indicamos los textos que se definieron en el comando texto al principio("Baja presion" = 0)
+  if(outputValue < 50){
+    indice = 0;
+  } else{
+    if(outputValue >=50 && outputValue < 100){
+      indice = 1;
+    }else{
+      if(outputValue >=100 && outputValue < 200){
+        indice = 2;
+      }else{
+        if(outputValue >=200 && outputValue < 350){
+          indice= 3;
+        }
+      }
+    }
+  }
+  lcd.clear(); // se borran pantallas
+  lcd.setCursor(0, 0); //Escribimos en la fila de abajo
+  lcd.print("PRESION: "); // escribimos mensaje en el lcd
+  lcd.print(outputValue,DEC);
+  lcd.print(" PSI");
+  lcd.setCursor(0, 1); //Escribimos en la fila de abajo
+  lcd.print(textos[indice]); // Indicamos que imprima los indices   
+  Serial.print("Psi ");
+  Serial.println(outputValue);
+  delay(3000); //Tiempo para repetir el mensaje(1 segundo) 
+  lcd.clear();
+}
+
+
+
